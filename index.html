@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KARINA Library｜劉知珉閱讀專區</title>
+  <!-- 引入指定字型：Chocolate Classical Sans (中)、Carme (英)、Gothic A1 (韓) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Carme&family=Chocolate+Classical+Sans&family=Gothic+A1:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Carme"', '"Chocolate Classical Sans"', '"Gothic A1"', 'sans-serif'],
+          },
+          colors: {
+            canvas: '#F8F9FB',
+            surface: '#FFFFFF',
+            ink: '#18181B',
+            muted: '#71717A',
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Carme', 'Chocolate Classical Sans', 'Gothic A1', sans-serif;
+      background-color: #F8F9FB;
+      color: #18181B;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* 正面書封立體質感與微浮動效果 */
+    .book-front {
+      transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.38s ease;
+      position: relative;
+      cursor: pointer;
+      user-select: none;
+      box-shadow:
+        -3px 0 6px rgba(0, 0, 0, 0.08),
+        0 10px 20px -6px rgba(24, 24, 27, 0.22);
+    }
+    /* 書封左側裝訂壓痕與光澤 */
+    .book-front::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        90deg,
+        rgba(255, 255, 255, 0.32) 0%,
+        rgba(0, 0, 0, 0.14) 3.5%,
+        rgba(255, 255, 255, 0.18) 6%,
+        rgba(255, 255, 255, 0) 20%,
+        rgba(0, 0, 0, 0.06) 100%
+      );
+      pointer-events: none;
+      border-radius: inherit;
+    }
+    .book-front-wrapper:hover .book-front {
+      transform: translateY(-10px) scale(1.025);
+      box-shadow:
+        -4px 0 8px rgba(0, 0, 0, 0.1),
+        0 20px 30px -8px rgba(24, 24, 27, 0.28);
+    }
+
+    /* 現代極簡白橡木層板 */
+    .shelf-plank {
+      height: 14px;
+      background: linear-gradient(180deg, #F1EFEA 0%, #E2DDD2 65%, #CBC2B0 100%);
+      border-radius: 3px;
+      box-shadow: 0 10px 18px -6px rgba(24, 24, 27, 0.14), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+      position: relative;
+    }
+    .shelf-plank::after {
+      content: '';
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      bottom: -5px;
+      height: 5px;
+      background: radial-gradient(ellipse at center, rgba(24, 24, 27, 0.12) 0%, transparent 75%);
+    }
+
+    .no-scrollbar::-webkit-scrollbar { display: none; }
+    .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+    @keyframes modalReveal {
+      from { opacity: 0; transform: translateY(14px) scale(0.985); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .modal-animate {
+      animation: modalReveal 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- 頂部極簡導覽列 -->
+  <header class="sticky top-0 z-30 bg-white/85 backdrop-blur-md border-b border-zinc-200/70">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 h-16 flex items-center justify-between gap-4">
+      <div class="flex items-center gap-3.5">
+        <div class="w-9 h-9 rounded-xl bg-zinc-900 text-white flex items-center justify-center text-sm tracking-wider shadow-sm">
+          KL
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base sm:text-lg font-normal tracking-tight text-zinc-900">KARINA Library</h1>
+            <span class="hidden sm:inline-block text-xs text-zinc-300">|</span>
+            <span class="hidden sm:inline-block text-xs text-zinc-500 tracking-wide">劉知珉閱讀專區</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-2.5">
+        <div class="relative hidden md:block w-56">
+          <input id="searchInput" type="text" placeholder="搜尋書名、作者、佳句..."
+            class="w-full pl-9 pr-3 py-1.5 bg-zinc-100/80 hover:bg-zinc-100 focus:bg-white border border-transparent focus:border-zinc-300 rounded-full text-xs text-zinc-800 placeholder-zinc-400 outline-none transition" />
+          <svg class="w-3.5 h-3.5 text-zinc-400 absolute left-3 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+        </div>
+
+        <div class="bg-zinc-100 p-1 rounded-full flex items-center text-xs">
+          <button id="btnShelfView" onclick="switchView('shelf')" class="px-3.5 py-1.5 rounded-full bg-white text-zinc-900 shadow-sm transition">
+            書櫃視圖
+          </button>
+          <button id="btnGridView" onclick="switchView('grid')" class="px-3.5 py-1.5 rounded-full text-zinc-500 hover:text-zinc-900 transition">
+            卡片列表
+          </button>
+        </div>
+
+        <button onclick="openManageModal()" class="px-3.5 py-1.5 rounded-full bg-zinc-900 hover:bg-zinc-800 text-white text-xs tracking-wide transition shadow-sm flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          <span>管理書庫</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- 標籤篩選與資訊列 -->
+  <section class="max-w-6xl w-full mx-auto px-5 sm:px-8 pt-6 pb-2">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+      <div id="tagFilterBar" class="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1"></div>
+
+      <div class="flex items-center gap-4 text-xs text-zinc-500 shrink-0">
+        <span>收錄書籍 <strong id="statCount" class="text-zinc-900 font-normal ml-0.5">0</strong> 冊</span>
+        <span>•</span>
+        <span>點擊書封查看完整節錄與來源</span>
+      </div>
+    </div>
+
+    <div class="mt-3 md:hidden">
+      <input id="searchInputMobile" type="text" placeholder="搜尋書名、作者、佳句..."
+        class="w-full px-4 py-2 bg-white border border-zinc-200 rounded-full text-xs text-zinc-800 placeholder-zinc-400 outline-none" />
+    </div>
+  </section>
+
+  <!-- 主內容區 -->
+  <main class="flex-1 max-w-6xl w-full mx-auto px-5 sm:px-8 py-6">
+    <!-- 正面書封木質層板書櫃視圖 -->
+    <div id="shelfViewContainer" class="space-y-14"></div>
+    <!-- 卡片列表視圖 -->
+    <div id="gridViewContainer" class="hidden grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6"></div>
+  </main>
+
+  <!-- 頁尾 -->
+  <footer class="border-t border-zinc-200/70 bg-white py-6 mt-12">
+    <div class="max-w-6xl mx-auto px-5 sm:px-8 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-zinc-400">
+      <div>KARINA Library｜劉知珉閱讀專區 Archive</div>
+      <div class="flex items-center gap-4">
+        <a href="https://typical-silverfish-34e.notion.site/KARINA-Library-3f88ad958c938009a32ccf6cb0786079" target="_blank" class="hover:text-zinc-700 transition underline underline-offset-4">Notion 原始資料庫</a>
+        <button onclick="resetDefaultData()" class="hover:text-zinc-700 transition">還原預設書單</button>
+      </div>
+    </div>
+  </footer>
+
+  <!-- 書籍詳細資訊彈窗 -->
+  <div id="detailModal" class="fixed inset-0 z-50 hidden bg-zinc-950/45 backdrop-blur-sm flex items-center justify-center p-4 sm:p-6" onclick="closeDetailModal(event)">
+    <div class="bg-white rounded-3xl max-w-3xl w-full max-h-[90vh] overflow-hidden shadow-2xl border border-zinc-100 flex flex-col modal-animate" onclick="event.stopPropagation()">
+      <div class="px-6 py-4 border-b border-zinc-100 flex items-center justify-between bg-zinc-50/60">
+        <div id="modalTags" class="flex flex-wrap items-center gap-1.5"></div>
+        <div class="flex items-center gap-2">
+          <button id="modalEditBtn" class="text-xs px-3 py-1.5 rounded-full border border-zinc-200 text-zinc-600 hover:bg-zinc-100 transition">編輯此書</button>
+          <button onclick="closeDetailModal()" class="w-8 h-8 rounded-full hover:bg-zinc-200/70 flex items-center justify-center text-zinc-500 transition">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="p-6 sm:p-8 overflow-y-auto space-y-6">
+        <div class="flex flex-col sm:flex-row gap-6">
+          <div class="w-36 sm:w-44 shrink-0 mx-auto sm:mx-0">
+            <div id="modalCoverWrapper" class="aspect-[2/3] rounded-xl overflow-hidden shadow-lg border border-zinc-200/80 bg-zinc-100 relative">
+              <img id="modalCoverImg" src="" alt="" class="w-full h-full object-cover" />
+              <div id="modalCoverFallback" class="hidden w-full h-full p-4 flex flex-col justify-between text-white">
+                <span class="text-[10px] opacity-75 tracking-widest">KARINA LIBRARY</span>
+                <span id="modalFallbackTitle" class="text-sm leading-snug"></span>
+              </div>
+            </div>
+            <div id="modalAltCoverBox" class="hidden mt-3 flex items-center gap-2 bg-zinc-50 p-2 rounded-xl border border-zinc-100">
+              <img id="modalAltCoverImg" src="" alt="原版書封" class="w-10 h-14 object-cover rounded shadow-sm shrink-0" />
+              <span class="text-[11px] text-zinc-500 leading-tight">韓／日原版<br/>封面參考</span>
+            </div>
+          </div>
+
+          <div class="flex-1 space-y-4">
+            <div>
+              <h2 id="modalTitle" class="text-xl sm:text-2xl text-zinc-900 leading-snug"></h2>
+              <p id="modalOriginalTitle" class="text-sm text-zinc-500 mt-1"></p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3 pt-2 border-t border-zinc-100 text-xs">
+              <div>
+                <span class="text-zinc-400 block mb-0.5">作者</span>
+                <span id="modalAuthor" class="text-zinc-800"></span>
+              </div>
+              <div>
+                <span class="text-zinc-400 block mb-0.5">知珉提及日期</span>
+                <span id="modalDate" class="text-zinc-800"></span>
+              </div>
+              <div class="col-span-2">
+                <span class="text-zinc-400 block mb-0.5">台灣出版</span>
+                <span id="modalPublisher" class="text-zinc-800"></span>
+              </div>
+            </div>
+
+            <div id="modalResources" class="pt-1 flex flex-wrap gap-2"></div>
+          </div>
+        </div>
+
+        <div id="modalKarinaSection" class="bg-zinc-50 rounded-2xl p-5 border border-zinc-200/60 space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs tracking-wider text-zinc-500 uppercase">知珉提及紀錄</span>
+            <div id="modalSourceLinks" class="flex flex-wrap gap-2"></div>
+          </div>
+          <div id="modalKarinaMentions" class="space-y-3 text-sm text-zinc-700 leading-relaxed"></div>
+          <div id="modalKarinaPhotos" class="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-1"></div>
+        </div>
+
+        <div id="modalExcerptsSection" class="space-y-3">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs tracking-wider text-zinc-400 uppercase">個人讀後節錄</h3>
+            <span id="modalExcerptCount" class="text-[11px] text-zinc-400"></span>
+          </div>
+          <div id="modalExcerptsList" class="space-y-3"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 管理與編輯彈窗 -->
+  <div id="manageModal" class="fixed inset-0 z-50 hidden bg-zinc-950/45 backdrop-blur-sm flex items-center justify-center p-4" onclick="closeManageModal(event)">
+    <div class="bg-white rounded-3xl max-w-2xl w-full max-h-[88vh] overflow-hidden shadow-2xl flex flex-col modal-animate" onclick="event.stopPropagation()">
+      <div class="px-6 py-4 border-b border-zinc-100 flex items-center justify-between">
+        <h3 class="text-base text-zinc-900">管理書庫與 GitHub 匯出</h3>
+        <button onclick="closeManageModal()" class="w-8 h-8 rounded-full hover:bg-zinc-100 flex items-center justify-center text-zinc-500">✕</button>
+      </div>
+
+      <div class="px-6 pt-3 border-b border-zinc-100 flex gap-6 text-xs">
+        <button id="tabBtnForm" onclick="switchManageTab('form')" class="pb-2.5 border-b-2 border-zinc-900 text-zinc-900">新增 / 編輯書籍</button>
+        <button id="tabBtnExport" onclick="switchManageTab('export')" class="pb-2.5 border-b-2 border-transparent text-zinc-400 hover:text-zinc-700">匯出 HTML 部署至 GitHub</button>
+      </div>
+
+      <div class="p-6 overflow-y-auto flex-1">
+        <form id="bookForm" onsubmit="saveBookForm(event)" class="space-y-4 text-xs">
+          <input type="hidden" id="formBookId" />
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label class="block text-zinc-500 mb-1">中文書名 *</label>
+              <input id="formTitle" required type="text" class="w-full px-3 py-2 border border-zinc-200 rounded-xl outline-none focus:border-zinc-900" />
+            </div>
+            <div>
+              <label class="block text-zinc-500 mb-1">原文書名（韓/日）</label>
+              <input id="formOriginalTitle" type="text" class="w-full px-3 py-2 border border-zinc-200 rounded-xl outline-none focus:border-zinc-900" />
+            </div>
+            <div>
+              <label class="block text-zinc-500 mb-1">作者</label>
+              <input id="formAuthor" type="text" class="w-full px-3 py-2 border border-zinc-200 rounded-xl outline-none focus:border-zinc-900" />
+            </div>
+            <div>
+              <label class="block text-zinc-500 mb-1">知珉提及日期</label>
+              <input id="formDate" type="text" placeholder="2026年6月13日" class="w-full px-3 py-2 border border-zinc-200 rounded-xl outline-none focus:border-zinc-900" />
+            </div>
+            <div>
+              <label class="block text-zinc-500 mb-1">標籤（逗號分隔）</label>
+              <input id="formTags" type="text" placeholder="台灣出版, 書籍" class="w-full px-3 py-2 border border-zinc-200 rounded-xl outline-none focus:border-zinc-900" />
+            </div>
+            <div>
+              <label class="block text-zinc-500 mb-1">無封面時的備用底色</label>
+              <div class="flex items-center gap-2">
+                <input id="formColor" type="color" value="#2D3A4B" class="w-9 h-9 rounded cursor-pointer border-0" />
+                <select id="formTextColor" class="flex-1 px-3 py-2 border border-zinc-200 rounded-xl">
+                  <option value="#FFFFFF">淺色字（白字）</option>
+                  <option value="#18181B">深色字（黑字）</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-zinc-500 mb-1">封面圖片（本地檔名或網址，多張用逗號分隔）</label>
+            <input id="formCover" type="text" placeholder="438B3D59-7A61-40CB-B795-92229E57A268.webp" class="w-full px-3 py-2 border border-zinc-200 rounded-xl outline-none focus:border-zinc-900" />
+          </div>
+
+          <div>
+            <label class="block text-zinc-500 mb-1">知珉提及圖片（本地檔名，多張用逗號分隔）</label>
+            <input id="formKarinaImgs" type="text" placeholder="IMG_7631.jpg, E6CC316E-71CA-4C05-8C9B-0FC2D44C48D9.jpg" class="w-full px-3 py-2 border border-zinc-200 rounded-xl outline-none focus:border-zinc-900" />
+          </div>
+
+          <div>
+            <label class="block text-zinc-500 mb-1">知珉提及來源網址（每行一筆，格式：標題|網址）</label>
+            <textarea id="formSources" rows="2" placeholder="260613-IG|https://www.instagram.com/p/DZg1dp7FIgm/" class="w-full px-3 py-2 border border-zinc-200 rounded-xl outline-none focus:border-zinc-900"></textarea>
+          </div>
+
+          <div>
+            <label class="block text-zinc-500 mb-1">個人讀後節錄（每段以 --- 分隔）</label>
+            <textarea id="formExcerpts" rows="4" class="w-full px-3 py-2 border border-zinc-200 rounded-xl outline-none focus:border-zinc-900"></textarea>
+          </div>
+
+          <div class="flex items-center justify-between pt-2">
+            <button type="button" id="btnDeleteBook" onclick="deleteCurrentBook()" class="hidden px-4 py-2 rounded-full text-red-600 hover:bg-red-50 transition">刪除此書</button>
+            <div class="flex gap-2 ml-auto">
+              <button type="button" onclick="resetForm()" class="px-4 py-2 rounded-full border border-zinc-200 text-zinc-600 hover:bg-zinc-50">清空重填</button>
+              <button type="submit" class="px-5 py-2 rounded-full bg-zinc-900 text-white hover:bg-zinc-800">儲存書籍</button>
+            </div>
+          </div>
+        </form>
+
+        <div id="exportSection" class="hidden space-y-5 text-xs">
+          <div class="p-4 rounded-2xl bg-zinc-50 border border-zinc-200/70 space-y-2 leading-relaxed text-zinc-600">
+            <p class="text-zinc-900 font-medium">部署至 GitHub Pages 步驟：</p>
+            <ol class="list-decimal list-inside space-y-1">
+              <li>請將下載的 <code class="bg-zinc-200/70 px-1 rounded">index.html</code> 放進你電腦的 <code class="bg-zinc-200/70 px-1 rounded">KARINA Library圖庫瀏覽模式</code> 資料夾中（與所有圖片同一層）。</li>
+              <li>將整個資料夾上傳至你的 GitHub Repository，開啟 Pages 即可公開瀏覽！</li>
+            </ol>
+          </div>
+
+          <button onclick="downloadStandaloneHTML()" class="w-full py-3 rounded-2xl bg-zinc-900 hover:bg-zinc-800 text-white text-xs tracking-wider shadow-sm transition">
+            下載最新完整版 index.html
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const DEFAULT_BOOKS = [
+      {
+        id: 'book-50-people',
+        title: '五十人：得到與失去，始終會成為一種平衡',
+        originalTitle: '피프티 피플',
+        author: '鄭世朗 / 개정판',
+        tags: ['台灣出版', '書籍'],
+        date: '2026年6月13日',
+        spineColor: '#EAE6DF',
+        textColor: '#18181B',
+        covers: [
+          '438B3D59-7A61-40CB-B795-92229E57A268.webp',
+          'F93C3364-C9A6-4C82-BA81-49850A731757.jpeg'
+        ],
+        publisher: { name: '春天出版社', url: 'https://www.eslite.com/product/1001117012868896' },
+        resources: [
+          { label: '春天出版社 / 誠品', url: 'https://www.eslite.com/product/1001117012868896' },
+          { label: '桃園圖書館實體書', url: 'https://webpac.typl.gov.tw/bookDetail/2314181' },
+          { label: 'Readmoo 電子書', url: 'https://readmoo.com/book/210157016000101' },
+          { label: '韓國電子書 (Kyobo)', url: 'https://ebook-product.kyobobook.co.kr/dig/epd/ebook/E000003088590' }
+        ],
+        sources: [
+          { label: '260613-IG', url: 'https://www.instagram.com/p/DZg1dp7FIgm/' },
+          { label: '260805-IG', url: 'https://www.instagram.com/p/DbpRzlUE7yP/' }
+        ],
+        karinaMentions: [
+          {
+            tag: '260613-IG',
+            url: 'https://www.instagram.com/p/DZg1dp7FIgm/',
+            ko: '봄에서 여름으로, 유리가 뜨거워지고 창에 붙어 있던 꽃 먼지가 다시 비에 씻겨가는 한 계절 동안.',
+            zh: '春夏交替，在玻璃漸漸發燙、沾附於窗上的花粉塵埃被雨水洗去的那段時節裡。'
+          },
+          {
+            tag: '260805-IG',
+            url: 'https://www.instagram.com/p/DbpRzlUE7yP/',
+            ko: '허기가 심한가 심하지 않은가 느껴보려 했지만 몸속 에 허기와 비슷한 것이 너무 많아 헷갈렸다.',
+            zh: '我試著感受自己是否真的餓了，但體內有太多種感覺都與飢餓相似，讓我感到困惑。'
+          }
+        ],
+        karinaImages: [
+          'IMG_7631.jpg',
+          'E6CC316E-71CA-4C05-8C9B-0FC2D44C48D9.jpg'
+        ],
+        excerpts: [
+          {
+            chapter: '李煥毅',
+            text: '煥毅從來沒有如此害怕過，如今他卻感到害怕了，他怕自己是和如此難以理解的人結婚的事實，要是有發明出某種特殊的攝影器材可以拍出尹娜複雜的內心世界，煥毅應該會埋首學習如何操作那台機器，只要能讓他一目瞭然地看穿尹娜內心哪裡受傷、哪裡被摧毀就好……煥毅想著想著，在沙發上睡著了，他睡得很淺，感覺床頭邊隨時會開出邪惡的花朵。\n\n凌晨醒來時，他發現尹娜傳了簡訊給他。煥毅看完簡訊以後準備重新入睡，他下意識地擺動著手指，只為了撫摸尹娜的髮絲。\n\n看來他的手指忘記了尹娜不在身旁的事實，而任意擺動著。最後，他摸到了 X光婚紗照的相框邊角。p64'
+          },
+          {
+            chapter: '文宇南',
+            text: '善美把宇南拉起身，雙腳踩在宇南的腳背上。這已經不是第一次了。宇南覺得善美剛洗完澡還有些濕氣、輕巧、白皙的那雙腳簡直完美無瑕，雖然當初也不是特別因為腳而結婚，但是能夠每天看見對方美麗的部分依然是很愉快的事情。善美踩著宇南的腳背，兩人開始在音樂中漫舞。\n\n兩名早已熟透的中年人士各自回想著兒時踩在父親腳背上共舞的畫面，並試著去想像對方的童年，有點感傷也有點懷念，所以他們一直跳到善美的腳徹底乾爽沒有濕氣為止。\n\n宇南親吻了善美的眼角，由於低頭低得太用力，導致耳朵有點拉扯到的感覺。宇南心想，就算哪天善美的雙眼皮變成了五摺或六摺，應該也會美麗依舊。p84-85'
+          },
+          {
+            chapter: '韓圭翼',
+            text: '今天的豆漿冷麵味道還會和平常一樣嗎？圭翼小心翼翼地嚐了一口，當內心被人用亂刀砍過導致傷痕累累，就連查看狀態都於心不忍時，就必須依賴單純的感覺系統來對自己進行診斷，而現在這碗豆漿冷麵就是圭翼的診斷用藥，他細細咀嚼麵條，然後捧起碗來喝下香醇濃郁的冰涼豆漿。\n\n嗯，是一樣的味道，這樣就表示自己沒事。p307'
+          },
+          {
+            chapter: '尹昌民',
+            text: '昌民獨自叨念著，素銀一把環抱住昌民，像一隻矮小肥潤的可愛小鳥一樣，到處輕吻著他臉頰，幸好寬鬆的洋裝輕易就能脫下，昌民用一隻手就解開了素銀的胸罩，那是他年少輕狂的二十世代苦練多次的成果。\n\n「妳的皮膚好光滑。」\n\n那不是為了對素銀調情而講的甜言蜜語，昌民之所以會和素銀成為戀人，一方面也是因為他想要撫摸素銀的腳背，從涼鞋鞋帶之間微微隆起的白皙腳背實在誘人，所以忍不住開口問了素銀能否借他摸摸看，結果那次像是在鬧著玩的撫摸，成了他們第一次的身體接觸。\n\n素銀其他部位的肌膚更為柔軟，因為實在太軟嫩，所以撫摸時會感覺好像沒有摸到東西一樣，令人更想要繼續不停地觸摸。\n\n兩人把衣服脫在一樓，緩緩走上二樓。昌民明顯感受到頭痛症狀加劇，就連視線也變得模糊，他決定以後再也不喝香檳，覺得自己的體質真的不適合，但緊擁著素銀細緻柔嫩猶如熱浪般的身體，他感到幸福不已，甚至出現耳鳴仍置之不理。兩人的愛撫動作愈演愈烈，就算這輩子再也不能做愛，感覺也死而無憾。p315至316'
+          },
+          {
+            chapter: '李東烈',
+            text: '結束一天的工作準備返家，是最令東烈感到開心的時刻，雖然這輛腳踏車的重量跟東烈的體重有得比，且行駛速度極其緩慢，但是等騎上一段時間開始加速以後就會有風拍打在臉上，每當這種時候東烈都會覺得自己可以忘掉一切，不論是飽受打擊的事件，猶豫不決的煩惱、糟糕到無可救藥的面孔，或者是短暫感受到的痛苦等。p375'
+          }
+        ]
+      },
+      {
+        id: 'book-grandma-hawaii',
+        title: '奶奶的夏威夷祭祀',
+        originalTitle: '시선으로부터',
+        author: '鄭世朗 / 개정판',
+        tags: ['台灣出版', '書籍'],
+        date: '2025年12月28日',
+        spineColor: '#B589D6',
+        textColor: '#FFFFFF',
+        covers: [
+          'image.png',
+          'https://www.openbook.org.tw/sites/default/files/u656/fan_yi_shu_nai_nai_de_xia_wei_yi_ji_si_.png'
+        ],
+        publisher: { name: '時報文化出版企業股份有限公司', url: 'https://www.readingtimes.com.tw/product/' },
+        resources: [
+          { label: '時報文化', url: 'https://www.readingtimes.com.tw/product/' },
+          { label: '誠品線上', url: 'https://www.eslite.com/product/1001110932682312873008' },
+          { label: '桃園圖書館實體書', url: 'https://webpac.typl.gov.tw/bookDetail/2468754' },
+          { label: '韓國電子書 (Kyobo)', url: 'https://ebook-product.kyobobook.co.kr/dig/epd/ebook/E000003114652' }
+        ],
+        sources: [
+          { label: 'YouTube 影片提及 (0:47)', url: 'https://youtu.be/h2kyDRDsTYM?si=7IKWUx-4h-3QCEXh&t=47' }
+        ],
+        karinaMentions: [
+          {
+            tag: 'YouTube 畫面捕捉',
+            url: 'https://youtu.be/h2kyDRDsTYM?si=7IKWUx-4h-3QCEXh&t=47',
+            zh: '於 YouTube 影片片段中手持閱讀《시선으로부터（奶奶的夏威夷祭祀）》。'
+          }
+        ],
+        karinaImages: [
+          'BA177B4A-14AE-4A95-96B9-E96C2EECDFB8.jpeg',
+          'IMG_8748.jpeg'
+        ],
+        excerpts: [
+          {
+            chapter: 'p62',
+            text: '《普賢行願品》的第五大願「隨喜功德」總是令我感嘆不已。簡單來説，就是我們見到別人的善舉以及成就後，要發歡喜心，以歡喜心去隨喜他人。但人真的會有這種不嫉妒他人的心嗎？p62'
+          },
+          {
+            chapter: 'p104',
+            text: '不管怎樣，那時的經驗讓我獲得了可以識別具攻擊性的人的能力。無論他們是否表露出來，我都可以一眼看穿他們隱藏的本性。我可以察覺到開心飲酒的人突然性情大變的瞬間、被踩到腳的人沒有脫口而出的髒話、偽裝成謙虛的復仇之心。雖然每個人都帶有攻擊性，但隱約存在的人與從毛孔中散發火藥味的人存在很大的差距。\n\n自那之後，我下定決心只把那些讓人懷疑是如何生存下來、毫無攻擊性的人留在身邊。在弱肉強食的世界裡，我的第一任丈夫、第二任丈夫、朋友和一起共事的人，都是會被世界淘汰的軟弱之人。正因如此，我很愛他們，我愛他們的溫柔、純真、傷痛和柔弱。\n\n從這點來看，馬緹亞斯・毛厄相當於一劑預防針，雖然我打了兩劑預防針差點死掉。暴力能夠雕刻出人的人格，有時也會徹底毀掉人格。在暴力中倖存的人可以感知暴力的徵兆，有的人能夠利用這種感知能力，但也有人絕望地丟在一旁，所以很難得出一種結論。我可以把經驗過的恥辱轉換成能力，由此可見，我應該不是太過軟弱的人。p104'
+          }
+        ]
+      },
+      {
+        id: 'book-cat-oracle',
+        title: '在樹下傳達神諭的貓',
+        originalTitle: '猫のお告げは樹の下で',
+        author: '青山美智子 / あおやまみちこ',
+        tags: ['台灣出版', '書籍'],
+        date: '2025年11月10日',
+        spineColor: '#4A7C59',
+        textColor: '#FFFFFF',
+        covers: [
+          'https://m.media-amazon.com/images/S/compressed.photo.goodreads.com/books/1652595120i/61097115.jpg',
+          'https://m.media-amazon.com/images/I/61j2oLiWBBL._AC_UF1000,1000_QL80_.jpg'
+        ],
+        publisher: { name: '臺灣商務印書館股份有限公司', url: 'https://www.eslite.com/product/1001117012868896' },
+        resources: [
+          { label: '臺灣商務印書館 / 誠品', url: 'https://www.eslite.com/product/1001117012868896' },
+          { label: '桃園圖書館實體書', url: 'https://webpac.typl.gov.tw/bookDetail?id=2422357' },
+          { label: 'HyRead 電子書', url: 'https://tycccgov.ebook.hyread.com.tw/bookDetail.jsp?id=325365' },
+          { label: '日本實體書 (寶島社)', url: 'https://store.tkj.jp/shopdetail/000000011310/' }
+        ],
+        sources: [
+          { label: '251110 Weverse 直播', url: 'https://weverse.io/aespa/live/3-213883190' },
+          { label: 'Threads 韓文節錄翻譯參考', url: 'https://www.threads.com/share/BATZRnvQMV/' }
+        ],
+        karinaMentions: [
+          {
+            tag: '251110 WVS直播分享（*韓文版頁數與中文版不同）',
+            url: 'https://weverse.io/aespa/live/3-213883190',
+            zh: '1. 從知道你在媽媽肚子裡的那一刻起，就十分期待與你見面，一直期盼著，非常興奮。雖然都還沒真正見到你。p84\n2. 能再讓我多承受一下這份可愛的沉重嗎？p84\n3. 人之所以用兩隻腳走路，是因為有想要前往的地方。p87\n4. 沒有只有我能彈的吉他曲目，但我相信有些曲目，唯有因為是我，才能彈出來。p116\n5. 不要忘記。那種對自己感到寒心而懊惱的心情，要好好珍惜。p132\n6. 貓是不會說謊的，不會勉強自己笑，也不會去無謂的察言觀色。p212\n7. 應該只有人類會覺得道路邊緣就是角落吧？苔蘚說不定正把自己當地球中心生活著呢。p239\n8. 目的不是對周圍的人虛榮，而是看向更高處的「理想」之類的。p278\n9. 想要接收到新的好能量，首先要先釋放，因為要騰出可以容納的空間。p288\n10. 一切都始於此刻。p289'
+          }
+        ],
+        karinaImages: [
+          '270BF950-6C98-47C2-9C7A-A13207B37F2B.jpeg',
+          '423AF72D-DDBB-40B6-831A-6495723313E9.jpeg',
+          '1AB30AB0-3004-4CA9-B29C-701B280DF2FD.jpeg'
+        ],
+        excerpts: [
+          {
+            chapter: '[第一片] 朝西',
+            text: '朝大地用力一蹬，衝破迎面而來的風。我的雙腿愈是用力，視野就以愈快的速度往後飛逝。將眼前的建築、行道樹和人群不斷抛在腦後。過去了，過去了，都過去了。\n\n那些猛烈的不甘心與焦躁，跑完後將隨汗水滑落，大部分都變得無所謂。如果想過平穩的人生，這種「怎樣都無所謂」的感覺就很重要。\n\n因為無所謂所以忘得掉。討厭的事對自己而言，多半是怎樣都無所謂的事。\n\n那些無法讓我擁有幸福心情的事沒有記住的價值。p9'
+          },
+          {
+            chapter: '[第二片] 票',
+            text: '電車搖搖晃晃，運送著我們回家。彩希睡著了，頭靠在我肩膀上。\n\n趁現在，再一下就好，再一下就好，讓我承受這愛的重量。\n\n煞車發出宛如暗號的「嘰噫」聲，電車停了下來。彩希睜開眼。\n\n我們手上戴著成對的手環，骰子輕輕搖擺。p85'
+          },
+          {
+            chapter: '[第三片] 點',
+            text: '可是，這就是現在的我所能拿出最好的成果。明明是想激勵即將邁向廣大世界的龍三哥，結果卻只是展現出自己有多軟弱。不中用的我忍不住淚流不停。\n\n龍三哥從面紙盒裡抽出兩張面紙遞給我。\n\n「慎，你一定沒問題的。會說自己還不行的人絕對沒問題。『還不行』跟『已經不行了』完全是兩回事。『還不行』就表示現在才剛要開始。吉他彈久了指頭會變硬，到時候就不會痛了喔，之後就能彈得更好了。」p133'
+          },
+          {
+            chapter: '[第四片] 播種',
+            text: '神啊，如果祢真的存在，請聽我說。\n\n能否讓我剩下的人生不要再發生任何事，靜靜結束就好。\n\n不再為什麼而痛苦，也不再讓誰因我而痛苦。鏡子沒有回答。\n\n這是當然的，鏡子不等於神，這種事我當然知道。p149\n\n「神明很少給單一個人什麼，當然，不能說完全沒有這種事。但是比起這個，我們身邊隨時都有一股人類無法戰勝，也超越人類智慧的壓倒性力量，反而是我們擅自從那裡拿走什麼或拒絕什麼的情形還比較多。我往往從這種狀況中感受到神明的存在。」「好難懂………」\n\n難懂歸難懂，這番話仍在心中迴盪。良小弟咬一口最中餅。\n\n「比方說雨就是雨啊，人類會把下雨說成壞天氣，但天氣本身根本不分吉凶，就只是下雨而已。我雖然不能讓雨下或讓雨停，卻可以用下雨當藉口，邀請木下先生來喝茶。」p183'
+          },
+          {
+            chapter: '[第五片]',
+            text: '可是，已經太遲了。君枝和未央對現在的我來說已經太重要了。連一開始嫌麻煩的分擔家務事，購物時幫忙提袋子，或是和君枝一起去幫下課的學生當導護，我都已經樂在其中，和君枝鬥嘴，或是聽未央說口齒不清的話，也開始讓我感到幸福。\n\n現在的我，是如此恐懼失去這些有她們的日子。\n\n我其實很清楚。我一點都沒有不幸。到了這把年紀，還能獲得這段意想不到的溫柔時光。但也正因如此，我才拒絕接受。因為，只有我單方面幸福太難受了。要是無法讓君枝和未央感受到同樣的幸福，最後我還是不幸。p184\n\n我散播的種子在君枝心中茁壯成長，下次或許輪到其他人從君枝那裡獲得種子了。心意這種東西，或許就像這樣，在無意之間傳播開來。\n\n既然如此，我只要繼續熱愛模型下去就好。\n\n就算不知道種子擅自飄到哪裡，開出了什麼花—p196'
+          },
+          {
+            chapter: '[第六片] 正中間',
+            text: '柔軟強韌的毛，下面是一層薄薄的肉，再下面有骨頭。我感受著這一團溫暖的生命。貓不會說謊。我沒必要硬逼自己笑。也不用顧慮無謂的事。誠實的貓陪在誠實的我身邊，這件事帶給我非常安詳平靜的心情。p216\n\n「會認為道路兩邊是角落的只有人類吧。苔蘚說不定認為自己活在地球的中心。」\n\n自己所在的地方就是正中間。自己真正認為的事情就是正中間。自己心裡的正中間。那就是這個世界的正中間。p246'
+          }
+        ]
+      },
+      {
+        id: 'book-po-box-110',
+        title: '私人信箱一一○號的郵件',
+        originalTitle: '사서함110호의 우편물',
+        author: '李到禹 / 이도우',
+        tags: ['台灣出版', '書籍'],
+        date: '2026年1月21日',
+        spineColor: '#2B3A4A',
+        textColor: '#FFFFFF',
+        covers: [
+          'https://img.pchome.com.tw/cs/items/DJBR0GD900IKJ1I/000001_1744782053.jpg',
+          'https://contents.kyobobook.co.kr/prvw/006/980/08/5800010698008/580370310331698008001.jpg'
+        ],
+        publisher: { name: '暖暖書屋', url: 'https://www.sanmin.com.tw/product/index/006961798' },
+        resources: [
+          { label: '三民網路書店', url: 'https://www.sanmin.com.tw/product/index/006961798' },
+          { label: '桃園圖書館實體書', url: 'https://webpac.typl.gov.tw/bookDetail/2220619' },
+          { label: 'HyRead 電子書', url: 'https://ebook.hyread.com.tw/bookDetail.jsp?id=206693' },
+          { label: '韓國電子書 (Kyobo)', url: 'https://product.kyobobook.co.kr/detail/S000061451738' }
+        ],
+        sources: [
+          { label: 'Esquire Korea 專訪', url: 'https://www.esquirekorea.co.kr/article/1895614' },
+          { label: 'Instagram 相關貼文', url: 'https://www.instagram.com/p/DThhrHRj2r4/' }
+        ],
+        karinaMentions: [
+          {
+            tag: 'Esquire Korea 採訪問答',
+            url: 'https://www.esquirekorea.co.kr/article/1895614',
+            zh: 'Q：在飛機上有讀過什麼有趣的書嗎？\nA：最近有一次飛行時間比較短，只帶了兩本書，其中一本有趣到在飛機上就全部看完，是李到禹作家的《私人信箱一一○號的郵件》，內容講述30多歲的愛情故事，很精彩，那本書滿厚的，閱讀時像在看電視劇般。'
+          }
+        ],
+        karinaImages: [
+          '96E83FD5-3561-4AC8-97ED-CAD45B78BF8A.jpeg'
+        ],
+        excerpts: [
+          {
+            chapter: 'p213-214',
+            text: '涼爽拂面的風，揚起了真率的髮絲。顯高的秋天天空，蔚藍得耀眼。不見絲毫瑕疵，不禁令人錯覺首爾的天空沒有結界。在這裏生活了十二年，始終認為首爾是異鄉的真率，今天第一次感覺置身首爾天空下的自己，有了容身之處，恰似第二個故鄉一樣。很快，她便領悟，那是因為愛情找上了自己。\n\n「我…有話想說。」\n他只是默不作聲地看著真率，\n「我……愛你。」\n\n他靜靜看了看她，淡然地開口：「或許只是轉瞬即逝的風。」\n雖然真率的內心一隅有些灼痛，卻又不氣餒地低聲說道：\n「或許是吧…不過…我想，只有我最清楚自己的心。此刻的我的心…每次面對你的我心…我想，就是愛。」p213-214'
+          },
+          {
+            chapter: 'p215',
+            text: '「可以多給我一點時間嗎？多一點……整理的時間。我….會好好正視自己的心。」「……好。」\n\n不發一語點著頭的真率，也將目光轉向下方的街道。數之不盡的念頭，如洶湧波濤在她心底無聲翻湧。即使不形於色，沿著山脊吹拂而下的風，早已陣陣安撫著內在悄然沸騰的情緒。\n\n對現在的她而言，根本無從預測未來會發生什麼事。真率只是在心裏暗自呢喃，無論結果如何，自己再也不會討厭首爾，不會否定這座城市帶給自己的任何回憶。無論是多麼孤單、辛苦時光，這裏始終是認識那個男子的城市，自己絕不會恨它。某個秋日週末的上午，被豔陽輝映得亮白的山城郭前。p215'
+          },
+          {
+            chapter: 'p224-225',
+            text: '「這裏……好像沒有地方可以躲。明明是這麼寬廣的地方……」如實感受眼前寂靜景象的真率，慢慢環視周圍自言自語。建無聲地笑著：\n「只有妳自己的話，大概沒有地方躲吧？但妳現在可以躲在我背後啊！」乘著他慈藹的聲線，真率內心泛起陣陣漣漪。\n\n兩人牽著手，漫步在夜景之中。冷風刺骨，真率卻絲毫不感寒意，只覺這座被歲月不經意忘卻的夜故宮，恰似為兩人量身打造的天幕....。p224-225'
+          },
+          {
+            chapter: 'p228-230',
+            text: '耳邊傳來他惆悵笑聲，「真正想做的事，這輩子就該完成。」\n霎時，真率伸手輕撫他的頭髮。建轉頭，兩人四目相對，她雙眸微顫：「……我可以吻你嗎？」\n不由自主說出話。出神地注視著她的建，露出思緒複雜眼神，溫柔地笑著：「妳是對我說嗎？不可以。」\n沒能接著說下去的真率，只是靜靜凝望建。他緩緩將身體靠向她：「……那是我要做的事。」\n\n建神色凝重地俯視她：\n「..還記得我之前說過話嗎？我啊，如果有了自己愛的人…….一定不會錯過對方，只會使盡全力握緊她的手，牢牢抱在懷裏。對自己的女人，我一定這麼做。」\n\n「雖然我不知道愛是什麼...如果這不是愛，那是什麼？」p228-230'
+          },
+          {
+            chapter: 'p298-299',
+            text: '「那時……在你家後山，我說過……說過不會等你太久。如果得等那麼久，才能讓你想清楚，如果得觀察那麼久，才能讓你察覺自己的感情，如果每次她難受的時候，你的心也會跟著難受……那就不是我了⋯⋯不是那種非我不可，那種迫切渴求的感情了。你……只是喜歡我，我這個人。」p298-299'
+          },
+          {
+            chapter: 'p328 / p355 / p359-360',
+            text: '「和妳經歷過的事太多了，要割捨……對我來說，太難。」p328\n\n「等一下……讓我抱抱妳。」\n建與真率哭著親吻彼此，悲傷卻柔軟的嘴唇.…即使冬夜的飄雪凜冽，兩人舌尖的淚水卻是無比香醇。p355\n\n我生於世上，脫口而出的無數話語，終將在何處結成果實呢？\n時而消失於虛空，時而紮根於某人的心田，再度結成善果，抑或惡果的，言語之樹。p359-360'
+          },
+          {
+            chapter: 'p382-384 / p405 / p437',
+            text: '「還……沒走啊？」\n建緩緩地點頭。\n「走不了。」\n欲言又止的兩人，相互對望。\n「妳...怎麼出來了？」\n「……想留住你。」p382\n\n我的愛，悄悄踮著腳尖，走進我的庭園，未曾得到批准。p405\n\n但願妳所愛安然無恙，即我所愛亦安然無恙。\n願世上的所有愛情，安然無恙。p437'
+          }
+        ]
+      },
+      {
+        id: 'book-one-is-a-lie',
+        title: '其中一句是謊言',
+        originalTitle: '이중 하나는 거짓말',
+        author: '金愛爛 / 김애란',
+        tags: ['台灣出版', '書籍'],
+        date: '2026年2月9日',
+        spineColor: '#E6B84C',
+        textColor: '#18181B',
+        covers: [
+          'image 1.png'
+        ],
+        publisher: { name: '新經典圖文傳播有限公司', url: 'https://www.eslite.com/product/10012017642683080532005' },
+        resources: [
+          { label: '誠品線上', url: 'https://www.eslite.com/product/10012017642683080532005' },
+          { label: '桃園圖書館實體書', url: 'https://webpac.typl.gov.tw/bookDetail/2558400' },
+          { label: '華藝電子書', url: 'https://www.airitibooks.com/Publication/Details?publicationID=P202602120026' },
+          { label: '韓國電子書 (Kyobo)', url: 'https://ebook-product.kyobobook.co.kr/dig/epd/ebook/E000008661933' }
+        ],
+        sources: [
+          { label: 'YouTube 影片提及', url: 'https://youtu.be/MUZUWMWviCM?si=R8kyKs-iGcqRR9Hb' },
+          { label: '260401 Bubble 推薦', url: '' }
+        ],
+        karinaMentions: [
+          {
+            tag: '260401 Bubble',
+            ko: '만우절을 맞이하여 김애란 작가님의 ‘이 중 하나는 거짓말’ 추천드려요',
+            zh: '為了迎接愚人節 我推薦金愛爛作家的《其中一句是謊言》'
+          }
+        ],
+        karinaImages: [
+          '7AFBCEAB-E482-40D6-980D-DA0788F9CECC.jpeg',
+          '0A83BFC2-AB47-4D1A-AC29-EC7EEA0E3B70.jpeg'
+        ],
+        excerpts: []
+      },
+      {
+        id: 'book-harmless-to-me',
+        title: '對我無害之人',
+        originalTitle: '내게 무해한 사람',
+        author: '崔恩榮 / 최은영',
+        tags: ['台灣出版', '書籍'],
+        date: '2026年1月3日',
+        spineColor: '#5B7B9A',
+        textColor: '#FFFFFF',
+        covers: [
+          'https://d1i8d984en2aby.cloudfront.net/products/cptw/3258/conversions/20190820100117_p2-product_preview.webp',
+          'https://mblogthumb-phinf.pstatic.net/MjAyMTA0MDhfMjQx/MDAxNjE3ODg1MDE2MDI4.jngsu_MP70h4smy0wgpQk7Fj1pFusIl3le8biVuRFIg.OPgJHhZ5Y3EUSZYrLlDRrsFrU1I2zJlyG5h7DLW44-0g.JPEG.terryjung21c/%EB%82%B4%EA%B2%8C_%EB%AC%B4%ED%95%B4%ED%95%9C_%EC%82%AC%EB%9E%8C.jpg?type=w800'
+        ],
+        publisher: { name: '臺灣商務印書館股份有限公司', url: 'https://cptw.com.tw/book/08040237' },
+        resources: [
+          { label: '臺灣商務印書館', url: 'https://cptw.com.tw/book/08040237' },
+          { label: '誠品線上', url: 'https://www.eslite.com/product/1001117012788483' },
+          { label: '桃園圖書館實體書', url: 'https://webpac.typl.gov.tw/bookDetail/2220619' },
+          { label: '韓國電子書 (Kyobo)', url: 'https://product.kyobobook.co.kr/detail/S000000780120' }
+        ],
+        sources: [
+          { label: 'YouTube 播放清單 / 影片提及', url: 'https://youtube.com/playlist?list=PLWk6nxHc-4qZHGnQa6FuRWfr4vUV2d8a0&si=Ylm-jHksJ79kxp8d' }
+        ],
+        karinaMentions: [
+          {
+            tag: 'YouTube 提及',
+            url: 'https://youtube.com/playlist?list=PLWk6nxHc-4qZHGnQa6FuRWfr4vUV2d8a0&si=gdQ91yhPCli0bXqM',
+            zh: '於 YouTube 推薦清單中提及崔恩榮短篇小說集《對我無害之人》。'
+          }
+        ],
+        karinaImages: [
+          'image.jpeg'
+        ],
+        excerpts: [
+          {
+            chapter: '那個夏天',
+            text: '她們親吻了很長時間，沉醉於彼此舌頭和嘴唇的味道、偶爾碰觸到對方牙齒的感覺，從小巧鼻子裡散發出的甜蜜氣息，幾乎讓她們忘記時間是如何流逝的。自己身體、關於「我」的意識，你與我之間的區分都在那一瞬間失去了意義。此時彼此身體的感覺反而更接近花瓣和波浪，伊景認為她們只是呼氣吐息本身的存在而已，在呼吸之間無限上升的同時，也深深地往下墜落。p11\n\n「沒有妳的地方就沒有幸福。」在說出這句話之前，伊景曾經真心相信沒有秀怡的地方就沒有幸福可言。但是一旦化為言語之後，卻發現這只是一句虛有其表且華而不實的話。p46\n\n「我本來就明白天底下沒有這麼好的事情，這麼好的事情怎麼可能發生在我身上...我也沒有盼望過能跟妳走到永遠，我沒有那麼好的命….…如今我也不必再擔心妳會因為傷心難過而痛不欲生了，即使這樣..不是的，一切都會過去的，世事皆是如此。」p54'
+          },
+          {
+            chapter: '逝去的夜晚',
+            text: '允熙認為小時候的時間密度和其他時間都不一樣。即使同樣是十年，十歲之前的時間，與十歲之後的任何一個十年，在感覺上是完全不同的。小時候住在一起，彼此相愛過的人，之後無論有多長時間未能見面，終究還是緊緊聯繫在一起。即便他們在現實上是毫無關係的人，也適用這個道理。p100\n\n「如果祈禱有用的話，那麼就不是我們所生活的現實世界了。只要迫切地懇求就會實現？那麼那些含冤而死的人，難道沒有迫切地向上天祈求過一條生路嗎？」p103'
+          },
+          {
+            chapter: '用沙子蓋的家',
+            text: '其實我一直認為孤獨是一件無可奈何的事，因為人們若是開始習慣依附他人，總有一天會讓自己傷心失望，甚至變得孤僻。與其變成一個卑微且心理扭曲的人，還不如選擇成為一個灑脫而孤單的人好一點。p116\n\n「所有的一切都已經改變了。」沙子說道。「我很喜歡這句話，所有的事物都會隨著時間流逝而改變，這個世界上沒有什麼是永恆。不過遇到你們之後，我開始討厭這個說法了。為什麼一定要改變呢？為什麼時間非流逝不可？我真希望一切不要改變，就像空霧的照片一樣，能夠將某個瞬間永遠凝結在那一刻。」p138\n\n那時我突然很想擁抱空霧，就算沙子在我們身邊，我仍然會有同樣的衝動。抱著他的時候，我想把這段時間折起來收藏，就像把書的一角折起來似的，為了將來哪一天再次打開它，為了要好好記住。p169\n\n其實我很想反駁他們，只是最終仍以沉默收場。因為對於沒有其他選擇的人來說，將自己人生的矛盾一一道出，其實是件很殘忍的事；而對於一個沒有經歷過那段矛盾的人來說，提出批判只是再簡單不過的事。p172\n\n幸好我們生活在一個有重力和摩擦力的世界，才可以走走停停，停停走走地走下去。雖然這並不是永遠的，但是能夠這樣活著，似乎是更好的選擇。\n人類這種生物還真是神奇。明明有著可以撫摸彼此的手和親吻對方的嘴唇，卻用這雙手來毆打對方，用那張嘴說出傷透人心的話。p192-193\n\n我總是認為人們只會帶給我失望，但比起這個更讓我感到痛苦的是，讓我所愛的人感到失望的其實就是我自己；讓那些準備好要來愛我的人轉身離開的，其實是我的冷漠無情。p194\n\n無論兩個人再怎麼相愛，也一定會存在著愛得比較多一方和愛得比較少的一方。這不是因為誰比較悲慘，也不是因為誰更為卑劣，只是愛情的本質就是如此。p195'
+          },
+          {
+            chapter: '告白 / 援手 / 在阿奇地',
+            text: '每當與珍熙在一起的時候，美周的心就會慢慢湧現一種安心的感覺。原來妳對我是無害的人。那時是美周這輩子最幸福的一段時光。美周的幸福來自於她對珍熙的一無所知，她壓根不知道珍熙受過什麼樣的痛苦，隨著她產生的錯覺愈大，感受到的幸福也就愈多。p207-208\n\n從暗處可以清楚地看到明亮的地方，但是為什麼從明亮的地方卻看不清楚黑暗的一方呢？那還不如乾脆讓這裡變成一片漆黑，那麼只要一點微弱的燈光，我們就可以看到彼此了。p248\n\n我想起有人曾經對我說，美麗的事物可以撫慰人心。我從太多事物中看見了美好，是否我也因此從中獲得了慰藉呢？當時的我無法確認自己是否有得到安慰的資格。p271'
+          },
+          {
+            chapter: '解說，最終忍住眼淚之人的倫理',
+            text: '愛情是可以在對方面前暴露自己最脆弱最可恥的一面，卻不會感到有任何的羞恥；沉默地陪在彼此的身邊；代替對方哭泣；以及放慢自己的速度配合對方的腳步。p337\n\n「對我無害之人」是〈告白〉中美周對不想要帶給任何人傷害的朋友珍熙產生安心感時出現的話語，同時也是回首往事時對自己的耳語。這句話語中承載著對另一方堅定的信任，也有著在夢中漫遊似的慵懶甜蜜感。但是，小說中的這種甜蜜感是建立在對珍熙所承受痛苦一無所知之上，因為無知而得以實現。自己所感受到的安逸和幸福風景，總是在徹底地將對方的孤獨和痛苦密封起來的時候才會實現。p339'
+          }
+        ]
+      }
+    ];
+
+    const STORAGE_KEY = 'karina_library_books_v3';
+    let books = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') || JSON.parse(JSON.stringify(DEFAULT_BOOKS));
+    let currentView = 'shelf';
+    let selectedTag = '全部';
+    let searchQuery = '';
+
+    function saveBooksToStorage() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(books));
+    }
+
+    function resetDefaultData() {
+      if (confirm('確定要還原為預設書單嗎？')) {
+        books = JSON.parse(JSON.stringify(DEFAULT_BOOKS));
+        saveBooksToStorage();
+        renderAll();
+      }
+    }
+
+    function getFilteredBooks() {
+      return books.filter(b => {
+        const matchTag = selectedTag === '全部' || (b.tags && b.tags.includes(selectedTag));
+        const q = searchQuery.trim().toLowerCase();
+        if (!q) return matchTag;
+        const inTitle = (b.title || '').toLowerCase().includes(q);
+        const inOrig = (b.originalTitle || '').toLowerCase().includes(q);
+        const inAuthor = (b.author || '').toLowerCase().includes(q);
+        const inExcerpts = (b.excerpts || []).some(e => (e.text || '').toLowerCase().includes(q) || (e.chapter || '').toLowerCase().includes(q));
+        return matchTag && (inTitle || inOrig || inAuthor || inExcerpts);
+      });
+    }
+
+    function renderTags() {
+      const allTags = new Set(['全部']);
+      books.forEach(b => (b.tags || []).forEach(t => allTags.add(t)));
+      const bar = document.getElementById('tagFilterBar');
+      bar.innerHTML = Array.from(allTags).map(tag => {
+        const active = tag === selectedTag;
+        return `
+          <button onclick="selectTag('${tag}')"
+            class="px-3.5 py-1.5 rounded-full text-xs whitespace-nowrap transition ${
+              active
+                ? 'bg-zinc-900 text-white shadow-sm'
+                : 'bg-white text-zinc-600 border border-zinc-200/80 hover:border-zinc-400'
+            }">
+            ${tag}
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectTag(tag) {
+      selectedTag = tag;
+      renderAll();
+    }
+
+    // 書櫃視圖：正面書封陳列 + 木質層板 + 層板下方小標（書原文名，若有中文一併註記）
+    function renderShelfView(filtered) {
+      const container = document.getElementById('shelfViewContainer');
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="text-center py-20 text-zinc-400 text-sm">找不到符合條件的書籍</div>`;
+        return;
+      }
+
+      // 依螢幕寬度決定每層書架擺放幾本正面書封
+      let perShelf = 4;
+      if (window.innerWidth < 640) perShelf = 2;
+      else if (window.innerWidth < 1024) perShelf = 3;
+
+      const shelves = [];
+      for (let i = 0; i < filtered.length; i += perShelf) {
+        shelves.push(filtered.slice(i, i + perShelf));
+      }
+
+      container.innerHTML = shelves.map((shelfBooks, sIdx) => {
+        // 上方陳列：正面書封直立站在層板上
+        const coversRowHTML = shelfBooks.map(book => {
+          const coverSrc = (book.covers && book.covers[0]) || '';
+          const cleanAuthor = (book.author || '').split('/')[0].trim();
+
+          return `
+            <div onclick="openDetailModal('${book.id}')"
+              class="book-front-wrapper flex-1 max-w-[165px] sm:max-w-[180px] flex flex-col items-center">
+              <div class="book-front w-full aspect-[2/3] rounded-t-[6px] rounded-b-[2px] overflow-hidden bg-zinc-100 border border-zinc-200/80">
+                ${coverSrc
+                  ? `<img src="${coverSrc}" alt="${book.title}" class="w-full h-full object-cover"
+                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />`
+                  : ''
+                }
+                <div style="background-color: ${book.spineColor || '#334155'}; color: ${book.textColor || '#FFFFFF'}; display: ${coverSrc ? 'none' : 'flex'};"
+                  class="w-full h-full p-4 flex-col justify-between">
+                  <span class="text-[9px] tracking-widest opacity-70">KARINA LIBRARY</span>
+                  <div>
+                    <p class="text-xs sm:text-sm leading-snug">${book.originalTitle || book.title}</p>
+                    <p class="text-[11px] opacity-75 mt-1">${cleanAuthor}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        // 層板下方：對應每本書的小標（書原文名，若有中文一併註記）
+        const captionsRowHTML = shelfBooks.map(book => {
+          const hasOrig = Boolean(book.originalTitle && book.originalTitle.trim());
+          const primaryLabel = hasOrig ? book.originalTitle.trim() : book.title;
+          const secondaryLabel = hasOrig && book.title ? book.title : '';
+
+          return `
+            <div onclick="openDetailModal('${book.id}')"
+              class="flex-1 max-w-[165px] sm:max-w-[180px] text-center cursor-pointer group px-1">
+              <p class="text-xs sm:text-[13px] text-zinc-800 group-hover:text-zinc-950 leading-snug line-clamp-1 transition">
+                ${primaryLabel}
+              </p>
+              ${secondaryLabel
+                ? `<p class="text-[11px] text-zinc-400 group-hover:text-zinc-600 mt-0.5 leading-snug line-clamp-2 transition">${secondaryLabel}</p>`
+                : ''
+              }
+            </div>
+          `;
+        }).join('');
+
+        return `
+          <div class="pt-3">
+            <!-- 書封陳列區 -->
+            <div class="flex items-end justify-around sm:justify-center gap-5 sm:gap-10 md:gap-14 px-4 sm:px-10">
+              ${coversRowHTML}
+            </div>
+            <!-- 木質層板 -->
+            <div class="shelf-plank"></div>
+            <!-- 書下面小標：書原文名 + 中文註記 -->
+            <div class="flex items-start justify-around sm:justify-center gap-5 sm:gap-10 md:gap-14 px-4 sm:px-10 pt-3">
+              ${captionsRowHTML}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderGridView(filtered) {
+      const container = document.getElementById('gridViewContainer');
+      if (filtered.length === 0) {
+        container.innerHTML = `<div class="col-span-full text-center py-20 text-zinc-400 text-sm">找不到符合條件的書籍</div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(book => {
+        const coverSrc = (book.covers && book.covers[0]) || '';
+        const cleanAuthor = (book.author || '').split('/')[0].trim();
+        const hasOrig = Boolean(book.originalTitle && book.originalTitle.trim());
+        const primaryLabel = hasOrig ? book.originalTitle.trim() : book.title;
+        const secondaryLabel = hasOrig && book.title ? book.title : '';
+
+        return `
+          <div onclick="openDetailModal('${book.id}')"
+            class="group bg-white rounded-2xl border border-zinc-200/75 overflow-hidden shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 cursor-pointer flex flex-col">
+            <div class="aspect-[2/3] bg-zinc-100 relative overflow-hidden">
+              ${coverSrc
+                ? `<img src="${coverSrc}" alt="${book.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500"
+                    onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';" />`
+                : ''
+              }
+              <div style="background-color: ${book.spineColor || '#334155'}; color: ${book.textColor || '#FFFFFF'}; display: ${coverSrc ? 'none' : 'flex'};"
+                class="w-full h-full p-5 flex-col justify-between">
+                <span class="text-[10px] tracking-widest opacity-70">KARINA LIBRARY</span>
+                <div>
+                  <p class="text-sm leading-snug">${primaryLabel}</p>
+                  <p class="text-xs opacity-75 mt-1">${cleanAuthor}</p>
+                </div>
+              </div>
+            </div>
+            <div class="p-3.5 flex-1 flex flex-col justify-between">
+              <div>
+                <h3 class="text-xs sm:text-sm text-zinc-900 line-clamp-1 leading-snug">${primaryLabel}</h3>
+                ${secondaryLabel ? `<p class="text-[11px] text-zinc-500 line-clamp-2 mt-0.5 leading-snug">${secondaryLabel}</p>` : ''}
+                <p class="text-[10px] text-zinc-400 mt-1">${cleanAuthor}</p>
+              </div>
+              <div class="mt-2.5 pt-2 border-t border-zinc-100 flex items-center justify-between text-[10px] text-zinc-400">
+                <span>${book.date || ''}</span>
+                <span>${book.excerpts && book.excerpts.length ? book.excerpts.length + ' 則節錄' : '查看詳情'}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderAll() {
+      const filtered = getFilteredBooks();
+      document.getElementById('statCount').textContent = filtered.length;
+      renderTags();
+      renderShelfView(filtered);
+      renderGridView(filtered);
+    }
+
+    function switchView(view) {
+      currentView = view;
+      const btnShelf = document.getElementById('btnShelfView');
+      const btnGrid = document.getElementById('btnGridView');
+      const shelfEl = document.getElementById('shelfViewContainer');
+      const gridEl = document.getElementById('gridViewContainer');
+
+      if (view === 'shelf') {
+        btnShelf.className = 'px-3.5 py-1.5 rounded-full bg-white text-zinc-900 shadow-sm transition';
+        btnGrid.className = 'px-3.5 py-1.5 rounded-full text-zinc-500 hover:text-zinc-900 transition';
+        shelfEl.classList.remove('hidden');
+        gridEl.classList.add('hidden');
+      } else {
+        btnGrid.className = 'px-3.5 py-1.5 rounded-full bg-white text-zinc-900 shadow-sm transition';
+        btnShelf.className = 'px-3.5 py-1.5 rounded-full text-zinc-500 hover:text-zinc-900 transition';
+        gridEl.classList.remove('hidden');
+        shelfEl.classList.add('hidden');
+      }
+    }
+
+    function openDetailModal(bookId) {
+      const book = books.find(b => b.id === bookId);
+      if (!book) return;
+
+      document.getElementById('modalTags').innerHTML = (book.tags || []).map(t =>
+        `<span class="px-2.5 py-0.5 rounded-full bg-zinc-200/70 text-zinc-700 text-[11px]">${t}</span>`
+      ).join('');
+
+      document.getElementById('modalEditBtn').onclick = () => {
+        closeDetailModal();
+        openManageModal(book.id);
+      };
+
+      document.getElementById('modalTitle').textContent = book.title;
+      document.getElementById('modalOriginalTitle').textContent = book.originalTitle || '';
+      document.getElementById('modalAuthor').textContent = book.author || '-';
+      document.getElementById('modalDate').textContent = book.date || '-';
+      document.getElementById('modalPublisher').textContent = book.publisher ? book.publisher.name : '-';
+
+      const imgEl = document.getElementById('modalCoverImg');
+      const fbEl = document.getElementById('modalCoverFallback');
+      fbEl.style.backgroundColor = book.spineColor || '#334155';
+      fbEl.style.color = book.textColor || '#FFFFFF';
+      document.getElementById('modalFallbackTitle').textContent = book.title;
+
+      if (book.covers && book.covers[0]) {
+        imgEl.src = book.covers[0];
+        imgEl.classList.remove('hidden');
+        fbEl.classList.add('hidden');
+        imgEl.onerror = () => {
+          imgEl.classList.add('hidden');
+          fbEl.classList.remove('hidden');
+        };
+      } else {
+        imgEl.classList.add('hidden');
+        fbEl.classList.remove('hidden');
+      }
+
+      const altBox = document.getElementById('modalAltCoverBox');
+      const altImg = document.getElementById('modalAltCoverImg');
+      if (book.covers && book.covers[1]) {
+        altImg.src = book.covers[1];
+        altBox.classList.remove('hidden');
+        altImg.onerror = () => altBox.classList.add('hidden');
+      } else {
+        altBox.classList.add('hidden');
+      }
+
+      const resEl = document.getElementById('modalResources');
+      resEl.innerHTML = (book.resources || []).map(r => `
+        <a href="${r.url}" target="_blank" rel="noopener"
+          class="inline-flex items-center gap-1 px-3 py-1.5 rounded-xl bg-zinc-100 hover:bg-zinc-200/80 text-zinc-700 text-xs transition">
+          <span>${r.label}</span>
+          <svg class="w-3 h-3 opacity-60" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+        </a>
+      `).join('');
+
+      const srcEl = document.getElementById('modalSourceLinks');
+      srcEl.innerHTML = (book.sources || []).map(s => s.url ? `
+        <a href="${s.url}" target="_blank" rel="noopener"
+          class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-zinc-900 text-white text-[11px] hover:bg-zinc-700 transition">
+          <span>${s.label}</span>
+          <span>↗</span>
+        </a>
+      ` : `<span class="px-2.5 py-1 rounded-full bg-zinc-200 text-zinc-700 text-[11px]">${s.label}</span>`).join('');
+
+      const mentionsEl = document.getElementById('modalKarinaMentions');
+      mentionsEl.innerHTML = (book.karinaMentions || []).map(m => `
+        <div class="bg-white p-3.5 rounded-xl border border-zinc-200/60 space-y-1.5">
+          ${m.tag ? `<div class="text-[11px] text-zinc-400">${m.tag}</div>` : ''}
+          ${m.ko ? `<p class="text-xs text-zinc-500 italic">「${m.ko}」</p>` : ''}
+          ${m.zh ? `<p class="text-xs sm:text-sm text-zinc-800 whitespace-pre-line leading-relaxed">${m.zh}</p>` : ''}
+        </div>
+      `).join('');
+
+      const photosEl = document.getElementById('modalKarinaPhotos');
+      if (book.karinaImages && book.karinaImages.length > 0) {
+        photosEl.classList.remove('hidden');
+        photosEl.innerHTML = book.karinaImages.map(img => `
+          <a href="${img}" target="_blank" class="block aspect-[4/3] rounded-xl overflow-hidden border border-zinc-200 bg-white group">
+            <img src="${img}" alt="知珉提及圖片" class="w-full h-full object-cover group-hover:scale-105 transition duration-300"
+              onerror="this.parentElement.style.display='none'" />
+          </a>
+        `).join('');
+      } else {
+        photosEl.classList.add('hidden');
+      }
+
+      const exSection = document.getElementById('modalExcerptsSection');
+      const exList = document.getElementById('modalExcerptsList');
+      const exCount = document.getElementById('modalExcerptCount');
+      if (book.excerpts && book.excerpts.length > 0) {
+        exSection.classList.remove('hidden');
+        exCount.textContent = `共 ${book.excerpts.length} 則節錄`;
+        exList.innerHTML = book.excerpts.map(ex => `
+          <div class="p-4 sm:p-5 rounded-2xl bg-white border border-zinc-200/80 shadow-xs space-y-2">
+            ${ex.chapter ? `<div class="text-xs text-zinc-400 tracking-wide">${ex.chapter}</div>` : ''}
+            <p class="text-xs sm:text-sm text-zinc-700 leading-relaxed whitespace-pre-line">${ex.text}</p>
+          </div>
+        `).join('');
+      } else {
+        exSection.classList.add('hidden');
+      }
+
+      document.getElementById('detailModal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeDetailModal(e) {
+      if (e && e.target !== e.currentTarget) return;
+      document.getElementById('detailModal').classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    function openManageModal(editBookId = null) {
+      document.getElementById('manageModal').classList.remove('hidden');
+      document.body.style.overflow = 'hidden';
+      switchManageTab('form');
+
+      if (editBookId) {
+        const b = books.find(x => x.id === editBookId);
+        if (b) {
+          document.getElementById('formBookId').value = b.id;
+          document.getElementById('formTitle').value = b.title || '';
+          document.getElementById('formOriginalTitle').value = b.originalTitle || '';
+          document.getElementById('formAuthor').value = b.author || '';
+          document.getElementById('formDate').value = b.date || '';
+          document.getElementById('formTags').value = (b.tags || []).join(', ');
+          document.getElementById('formColor').value = b.spineColor || '#2D3A4B';
+          document.getElementById('formTextColor').value = b.textColor || '#FFFFFF';
+          document.getElementById('formCover').value = (b.covers || []).join(', ');
+          document.getElementById('formKarinaImgs').value = (b.karinaImages || []).join(', ');
+          document.getElementById('formSources').value = (b.sources || []).map(s => `${s.label}|${s.url}`).join('\n');
+          document.getElementById('formExcerpts').value = (b.excerpts || []).map(e => (e.chapter ? `【${e.chapter}】\n` : '') + e.text).join('\n---\n');
+          document.getElementById('btnDeleteBook').classList.remove('hidden');
+        }
+      } else {
+        resetForm();
+      }
+    }
+
+    function closeManageModal(e) {
+      if (e && e.target !== e.currentTarget) return;
+      document.getElementById('manageModal').classList.add('hidden');
+      document.body.style.overflow = '';
+    }
+
+    function switchManageTab(tab) {
+      const formEl = document.getElementById('bookForm');
+      const expEl = document.getElementById('exportSection');
+      const bForm = document.getElementById('tabBtnForm');
+      const bExp = document.getElementById('tabBtnExport');
+
+      if (tab === 'form') {
+        formEl.classList.remove('hidden');
+        expEl.classList.add('hidden');
+        bForm.className = 'pb-2.5 border-b-2 border-zinc-900 text-zinc-900';
+        bExp.className = 'pb-2.5 border-b-2 border-transparent text-zinc-400 hover:text-zinc-700';
+      } else {
+        formEl.classList.add('hidden');
+        expEl.classList.remove('hidden');
+        bExp.className = 'pb-2.5 border-b-2 border-zinc-900 text-zinc-900';
+        bForm.className = 'pb-2.5 border-b-2 border-transparent text-zinc-400 hover:text-zinc-700';
+      }
+    }
+
+    function resetForm() {
+      document.getElementById('bookForm').reset();
+      document.getElementById('formBookId').value = '';
+      document.getElementById('formColor').value = '#2D3A4B';
+      document.getElementById('btnDeleteBook').classList.add('hidden');
+    }
+
+    function saveBookForm(e) {
+      e.preventDefault();
+      const id = document.getElementById('formBookId').value || ('book-' + Date.now());
+      const title = document.getElementById('formTitle').value.trim();
+      const originalTitle = document.getElementById('formOriginalTitle').value.trim();
+      const author = document.getElementById('formAuthor').value.trim();
+      const date = document.getElementById('formDate').value.trim();
+      const tags = document.getElementById('formTags').value.split(',').map(s => s.trim()).filter(Boolean);
+      const spineColor = document.getElementById('formColor').value;
+      const textColor = document.getElementById('formTextColor').value;
+      const covers = document.getElementById('formCover').value.split(',').map(s => s.trim()).filter(Boolean);
+      const karinaImages = document.getElementById('formKarinaImgs').value.split(',').map(s => s.trim()).filter(Boolean);
+
+      const sources = document.getElementById('formSources').value.split('\n').map(line => {
+        const parts = line.split('|');
+        if (parts.length >= 2) return { label: parts[0].trim(), url: parts.slice(1).join('|').trim() };
+        if (line.trim()) return { label: '相關連結', url: line.trim() };
+        return null;
+      }).filter(Boolean);
+
+      const excerpts = document.getElementById('formExcerpts').value.split('---').map(block => {
+        const trimmed = block.trim();
+        if (!trimmed) return null;
+        return { chapter: '', text: trimmed };
+      }).filter(Boolean);
+
+      const existingIdx = books.findIndex(b => b.id === id);
+      const existing = existingIdx >= 0 ? books[existingIdx] : {};
+
+      const bookData = {
+        ...existing,
+        id,
+        title,
+        originalTitle,
+        author,
+        date,
+        tags: tags.length ? tags : ['書籍'],
+        spineColor,
+        textColor,
+        covers,
+        karinaImages,
+        sources,
+        excerpts
+      };
+
+      if (existingIdx >= 0) {
+        books[existingIdx] = bookData;
+      } else {
+        books.unshift(bookData);
+      }
+
+      saveBooksToStorage();
+      renderAll();
+      closeManageModal();
+    }
+
+    function deleteCurrentBook() {
+      const id = document.getElementById('formBookId').value;
+      if (!id) return;
+      if (confirm('確定要刪除這本書嗎？')) {
+        books = books.filter(b => b.id !== id);
+        saveBooksToStorage();
+        renderAll();
+        closeManageModal();
+      }
+    }
+
+    function downloadStandaloneHTML() {
+      const docClone = document.documentElement.cloneNode(true);
+      const scriptTags = docClone.querySelectorAll('script');
+      scriptTags.forEach(s => {
+        if (s.textContent.includes('const DEFAULT_BOOKS =')) {
+          s.textContent = s.textContent.replace(
+            /const DEFAULT_BOOKS = \[[\s\S]*?\];/,
+            `const DEFAULT_BOOKS = ${JSON.stringify(books, null, 2)};`
+          );
+        }
+      });
+      const htmlContent = '<!DOCTYPE html>\n' + docClone.outerHTML;
+      const blob = new Blob([htmlContent], { type: 'text/html;charset=utf-8' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'index.html';
+      a.click();
+    }
+
+    document.getElementById('searchInput').addEventListener('input', e => {
+      searchQuery = e.target.value;
+      document.getElementById('searchInputMobile').value = searchQuery;
+      renderAll();
+    });
+    document.getElementById('searchInputMobile').addEventListener('input', e => {
+      searchQuery = e.target.value;
+      document.getElementById('searchInput').value = searchQuery;
+      renderAll();
+    });
+    window.addEventListener('resize', () => {
+      if (currentView === 'shelf') renderShelfView(getFilteredBooks());
+    });
+
+    renderAll();
+  </script>
+</body>
+</html>
